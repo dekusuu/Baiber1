@@ -288,7 +288,8 @@ body.chat-body { overflow: hidden; }
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
     gap: 0;
   }
-  .rail-logo-link, .rail-spacer, .rail-avatar { display: none; }
+  .rail-logo-link, .rail-spacer { display: none; }
+  .rail-avatar { margin-top: 0; }
   .rail-btn { width: 64px; height: 52px; }
   .rail-btn.active::before { left: 14px; right: 14px; top: -6px; bottom: auto; width: auto; height: 4px; border-radius: 0 0 4px 4px; }
 

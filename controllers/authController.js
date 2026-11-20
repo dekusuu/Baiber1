@@ -172,8 +172,9 @@ module.exports = {
       if (Object.keys(errors).length) return show(400, errors);
 
       const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      let userId;
       try {
-        await userModel.create({ username, passwordHash });
+        userId = await userModel.create({ username, passwordHash });
       } catch (err) {
         // Two people registering the same name at the same moment: the UNIQUE constraint decides.
         if (err.code === 'ER_DUP_ENTRY') {
@@ -182,8 +183,17 @@ module.exports = {
         throw err;
       }
 
-      req.flash('success', 'Account created. You can sign in now.');
-      return res.redirect('/login');
+      // Sign the new account in straight away. regenerate() issues a fresh session id (no session fixation);
+      // the flash message is added after it, because regenerate() empties the session.
+      return req.session.regenerate((regenError) => {
+        if (regenError) return next(regenError);
+        req.session.userId = userId;
+        req.flash('success', `Welcome to Bai-ber, ${username}! Your account is ready.`);
+        return req.session.save((saveError) => {
+          if (saveError) return next(saveError);
+          return res.redirect('/chat'); // registration only ever creates regular users
+        });
+      });
     } catch (err) {
       return next(err);
     }

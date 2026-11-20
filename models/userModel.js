@@ -103,9 +103,11 @@ module.exports = {
     return rows[0];
   },
   /** The website only ever creates role "user"; the create-admin script passes role "admin". */
+  /** Returns the new account's user_id. */
   async create({username, passwordHash, role = 'user'}) {
-    await pool.execute('INSERT INTO users (username, password_hash, role, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())',
+    const [result] = await pool.execute('INSERT INTO users (username, password_hash, role, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())',
       [username, passwordHash, role === 'admin' ? 'admin' : 'user']);
+    return result.insertId;
   },
   async rename(id, username) {
     await pool.execute('UPDATE users SET username = ? WHERE user_id = ?', [username, id]);

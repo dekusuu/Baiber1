@@ -48,12 +48,14 @@ test('billing and the admin area (MySQL)', { skip }, async (t) => {
     assert.equal((await aliceC.api('GET', '/api/billing')).status, 200);
   });
 
-  await t.test('registering always makes a regular user, whatever the form says', async () => {
+  await t.test('registering signs the new account in, always as a regular user, whatever the form says', async () => {
     await guest.get('/register');
     const result = await guest.post('/register', {
       username: 'sneaky_user', password: 'Passw0rd!test', confirmPassword: 'Passw0rd!test', role: 'admin',
     });
-    assert.equal(result.location, '/login');
+    assert.equal(result.location, '/chat');
+    assert.equal((await guest.get('/chat')).status, 200, 'already signed in after registering');
+    assert.equal((await guest.get('/admin')).status, 404);
     const [[row]] = await pool.query("SELECT role FROM users WHERE username = 'sneaky_user'");
     assert.equal(row.role, 'user');
   });

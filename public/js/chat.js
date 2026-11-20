@@ -1516,7 +1516,6 @@
   });
 
   $('profileModal').addEventListener('hidden.bs.modal', resetPasswordForm);
-  $('profileBtn').addEventListener('click', () => profileModal.show());
   $('railAvatar').addEventListener('click', () => profileModal.show());
   els.balancePill.addEventListener('click', () => profileModal.show());
 

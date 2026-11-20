@@ -24,9 +24,6 @@
 
     <div class="rail-spacer"></div>
 
-    <button type="button" class="rail-btn" id="profileBtn" aria-label="Profile and settings">
-      <i class="bi bi-gear-fill"></i><small>Profile</small>
-    </button>
     <form method="post" action="/logout" class="rail-form">
       <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
       <button type="submit" class="rail-btn" aria-label="Log out"><i class="bi bi-box-arrow-right"></i><small>Log out</small></button>

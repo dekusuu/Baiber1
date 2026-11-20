@@ -9,6 +9,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test",
+    "db:init": "node scripts/init-db.js",
     "migrate": "node scripts/migrate.js",
     "admin:create": "node scripts/create-admin.js",
     "import:sqlite": "node scripts/import-sqlite.js"
