@@ -1,4 +1,4 @@
 <%# Usage: include('_balance', { cents: 1500 })  - positive = owes, negative = credit. Words as well as colour. %>
 <% if (cents > 0) { %><span class="bal bal-owes"><%= money(cents) %></span><small class="bal-note">owes</small>
 <% } else if (cents < 0) { %><span class="bal bal-credit"><%= money(-cents) %></span><small class="bal-note">credit</small>
-<% } else { %><span class="bal bal-zero">$0</span><small class="bal-note">settled</small><% } %>
+<% } else { %><span class="bal bal-zero">₱0</span><small class="bal-note">settled</small><% } %>

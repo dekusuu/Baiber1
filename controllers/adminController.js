@@ -298,7 +298,7 @@ module.exports = {
       if (/^[=+\-@\t\r]/.test(out)) out = `'${out}`;
       return /[",\r\n]/.test(out) ? `"${out.replace(/"/g, '""')}"` : out;
     };
-    const header = ['Receipt', 'Received (UTC)', 'User', 'Amount', 'Note', 'Recorded by', 'Status', 'Voided (UTC)', 'Void reason'];
+    const header = ['Receipt', 'Received (UTC)', 'User', 'Amount (PHP)', 'Note', 'Recorded by', 'Status', 'Voided (UTC)', 'Void reason'];
     const lines = payments.map((p) => [
       p.receiptNo, p.paidAt, p.username, (p.amountCents / 100).toFixed(2), p.note, p.recorder,
       p.voided ? 'VOID' : 'valid', p.voidedAt || '', p.voidReason,

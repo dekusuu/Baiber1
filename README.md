@@ -2,7 +2,7 @@
 
 A desktop-first, real-time one-to-one messaging web app with a purple, Viber-inspired interface.
 People find each other, send **friend requests**, and can message each other only once a request is accepted.
-Every character sent costs money (**1 character = $1**), paid face to face and recorded by an **administrator**.
+Every character sent costs money (**1 character = ₱1**), paid face to face and recorded by an **administrator**.
 
 **Stack:** Node.js, Express, EJS, Bootstrap 5, vanilla JavaScript, Socket.IO, MySQL (`mysql2/promise`), `express-session`, `bcryptjs`, `dotenv`.
 
@@ -44,7 +44,7 @@ There are two roles.
 
 ## Billing
 
-**Rule: 1 character sent = $1.** Customers pay in person; the admin records it. Nothing is paid online.
+**Rule: 1 character sent = ₱1.** Customers pay in person; the admin records it. Nothing is paid online.
 
 - Every character counts, spaces and line breaks included. An emoji counts as 1.
 - Charges are **postpaid**: sending a message adds to the person's balance, and a recorded payment reduces it. `balance = total charged - total paid`. A positive balance is what the person owes; a negative one is credit.
@@ -52,10 +52,10 @@ There are two roles.
 - **Delete:** deleting a message never refunds it.
 - **Old messages are free.** Messages that exist when billing goes live are marked as already covered. Editing one of them bills only the characters you add to it.
 - **Optional credit limit** (`BILLING_CREDIT_LIMIT`, off by default). When set, a message that would push the unpaid balance over the limit is refused with a clear message ("402") and the person is told to pay at the counter. `0` makes it fully prepaid.
-- Money is kept as whole cents. The rate comes from `BILLING_RATE_CENTS` (100 = $1).
+- Money is kept as whole cents. The rate comes from `BILLING_RATE_CENTS` (100 = ₱1).
 - The charge and the message are saved in the same database transaction, so a message is never sent without its charge or charged without being sent.
 
-**What users see:** a balance pill at the top of the chat list (tap it for details), a live "This message costs $N (N characters at $1 each)" line above the composer, and a Billing section in Profile & settings with their balance, total charged and paid, recent payments and recent charges. The balance updates instantly across their open tabs.
+**What users see:** a balance pill at the top of the chat list (tap it for details), a live "This message costs ₱N (N characters at ₱1 each)" line above the composer, and a Billing section in Profile & settings with their balance, total charged and paid, recent payments and recent charges. The balance updates instantly across their open tabs.
 
 **What the admin does:** when someone pays, open **Billing / Payment -> Record payment**, pick the person, enter the amount, and save. A printable receipt (`OR-000001`, `OR-000002`, ...) opens straight away. A payment cannot be edited. If it was entered wrong, **void** it (a reason of 3-255 characters is required) and record it again. Voided payments stay in the list for the audit trail and do not count toward the balance.
 
@@ -79,8 +79,8 @@ All settings live in `.env` (see `.env.example`).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `BILLING_RATE_CENTS` | `100` | Price of one character in cents ($1) |
-| `BILLING_CREDIT_LIMIT` | unset | Maximum unpaid balance in dollars. Unset = no limit, `0` = prepaid |
+| `BILLING_RATE_CENTS` | `100` | Price of one character in cents (₱1) |
+| `BILLING_CREDIT_LIMIT` | unset | Maximum unpaid balance in pesos. Unset = no limit, `0` = prepaid |
 | `ADMIN_UTC_OFFSET_MINUTES` | `0` | Your time zone in minutes ahead of UTC (Manila = `480`) |
 | `SESSION_SECRET` | none, required | Signs the session cookie |
 | `SESSION_DAYS`, `BCRYPT_ROUNDS`, `REGISTER_LIMIT_PER_HOUR`, `TRUST_PROXY`, `COOKIE_SECURE`, `ALLOWED_ORIGINS` | see `.env.example` | Optional hardening and deployment settings |

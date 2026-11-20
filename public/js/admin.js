@@ -10,13 +10,13 @@
 
   function money(cents) {
     var abs = Math.abs(cents);
-    var text = '$' + Math.floor(abs / 100).toLocaleString('en-US') + (abs % 100 ? '.' + String(abs % 100).padStart(2, '0') : '');
+    var text = '₱' + Math.floor(abs / 100).toLocaleString('en-US') + (abs % 100 ? '.' + String(abs % 100).padStart(2, '0') : '');
     return cents < 0 ? '-' + text : text;
   }
 
-  /** "1,250.50" or "$40" -> cents, or null when it is not a valid amount. */
+  /** "1,250.50" or "₱40" -> cents, or null when it is not a valid amount. */
   function parseCents(text) {
-    var cleaned = String(text || '').trim().replace(/^\$/, '').replace(/,/g, '');
+    var cleaned = String(text || '').trim().replace(/^(PHP|Php|php|₱|P|\$)\s*/, '').replace(/,/g, '');
     if (!/^\d{1,9}(\.\d{1,2})?$/.test(cleaned)) return null;
     var parts = cleaned.split('.');
     return Number(parts[0]) * 100 + Number((parts[1] || '').padEnd(2, '0'));

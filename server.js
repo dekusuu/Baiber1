@@ -256,7 +256,7 @@ app.use(flash);
 app.use(csrfProtection);
 app.use((req, res, next) => {
   res.locals.appName = 'Bai-ber';
-  res.locals.money = billingModel.formatMoney; // money(cents) -> "$1,250" in templates
+  res.locals.money = billingModel.formatMoney; // money(cents) -> "₱1,250" in templates
   next();
 });
 

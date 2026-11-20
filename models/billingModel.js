@@ -1,5 +1,5 @@
 /**
- * Billing: 1 character sent = 1 dollar (see BILLING_RATE_CENTS), paid face to face and recorded by an admin.
+ * Billing: 1 character sent = 1 peso (see BILLING_RATE_CENTS), paid face to face and recorded by an admin.
  *
  * Money is always a whole number of CENTS (never a float). A user's balance is calculated, never stored:
  *
@@ -16,17 +16,17 @@ const num = (value) => Number(value) || 0;
 
 /* ---------------- configuration (all optional, see .env.example) ---------------- */
 
-/** Price of one character in cents. Default 100 = one dollar. */
+/** Price of one character in cents. Default 100 = one peso. */
 const RATE_CENTS_PER_CHAR = (() => {
   const value = Math.floor(Number(process.env.BILLING_RATE_CENTS));
   return Number.isSafeInteger(value) && value > 0 ? value : 100;
 })();
 
 /**
- * Optional ceiling on what a user may owe, in whole dollars.
+ * Optional ceiling on what a user may owe, in whole pesos.
  *   unset / blank -> no limit: people send freely and simply build up a balance
  *   0             -> prepaid: a message is refused unless the user already has enough credit
- *   50            -> a message is refused if it would take the unpaid balance above $50
+ *   50            -> a message is refused if it would take the unpaid balance above ₱50
  */
 const CREDIT_LIMIT_CENTS = (() => {
   const raw = (process.env.BILLING_CREDIT_LIMIT || '').trim();
@@ -41,7 +41,7 @@ const ADMIN_UTC_OFFSET_MINUTES = (() => {
   return Number.isFinite(value) && value >= -720 && value <= 840 ? value : 0;
 })();
 
-const MAX_PAYMENT_CENTS = 100000000; // $1,000,000: a typo guard, not a business rule
+const MAX_PAYMENT_CENTS = 100000000; // ₱1,000,000: a typo guard, not a business rule
 
 /* ---------------- pure helpers ---------------- */
 
@@ -52,19 +52,19 @@ function countChars(text) {
 
 const costCents = (chars) => chars * RATE_CENTS_PER_CHAR;
 
-/** 1234500 -> "$12,345"; 1250 -> "$12.50"; -500 -> "-$5". */
+/** 1234500 -> "₱12,345"; 1250 -> "₱12.50"; -500 -> "-₱5". */
 function formatMoney(cents) {
   const value = num(cents);
   const abs = Math.abs(value);
-  const dollars = Math.floor(abs / 100).toLocaleString('en-US');
+  const pesos = Math.floor(abs / 100).toLocaleString('en-US');
   const rest = abs % 100;
-  const text = `$${dollars}${rest ? `.${String(rest).padStart(2, '0')}` : ''}`;
+  const text = `₱${pesos}${rest ? `.${String(rest).padStart(2, '0')}` : ''}`;
   return value < 0 ? `-${text}` : text;
 }
 
-/** "1,250.50" / "$40" -> { ok: true, cents } (digits only, at most two decimals, greater than zero). */
+/** "1,250.50" / "₱40" / "PHP 40" -> { ok: true, cents } (digits only, at most two decimals, greater than zero). */
 function parseMoney(input) {
-  const text = String(input === undefined || input === null ? '' : input).trim().replace(/^\$/, '').replace(/,/g, '');
+  const text = String(input === undefined || input === null ? '' : input).trim().replace(/^(PHP|Php|php|₱|P|\$)\s*/, '').replace(/,/g, '');
   if (!/^\d{1,9}(\.\d{1,2})?$/.test(text)) {
     return { ok: false, error: 'Enter the amount as a number, for example 150 or 150.50.' };
   }
