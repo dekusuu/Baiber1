@@ -1,0 +1,55 @@
+<%- include('../partials/head', { styles: ['/css/auth.css'], bodyClass: 'auth-body' }) %>
+<main class="auth-shell">
+  <%- include('../partials/auth-brand') %>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-mobile-logo">
+        <img src="/images/logo.svg" alt="" width="40" height="40"><span>Bai-ber</span>
+      </div>
+
+      <h1>Welcome back</h1>
+      <p class="auth-lead">Sign in to continue to Bai-ber.</p>
+
+      <% if (locals.info) { %>
+        <div class="alert alert-warning d-flex gap-2 align-items-start" role="alert">
+          <i class="bi bi-exclamation-triangle-fill"></i><span><%= info %></span>
+        </div>
+      <% } %>
+      <% if (locals.error) { %>
+        <div class="alert alert-danger d-flex gap-2 align-items-start" role="alert">
+          <i class="bi bi-exclamation-circle-fill"></i><span><%= error %></span>
+        </div>
+      <% } %>
+
+      <form method="post" action="/login" class="needs-validation" novalidate autocomplete="on">
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+
+        <div class="mb-3">
+          <label class="form-label" for="username">Username</label>
+          <div class="input-icon">
+            <i class="bi bi-person lead-icon"></i>
+            <input type="text" class="form-control" id="username" name="username" value="<%= locals.username || '' %>"
+                   required maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false" autofocus>
+          </div>
+          <div class="invalid-feedback">Please enter your username.</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-icon has-toggle">
+            <i class="bi bi-lock lead-icon"></i>
+            <input type="password" class="form-control" id="password" name="password" required maxlength="72" autocomplete="current-password">
+            <button type="button" class="toggle-visibility" data-toggle-password="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="invalid-feedback">Please enter your password.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100">Sign in</button>
+      </form>
+
+      <p class="auth-switch">New to Bai-ber? <a href="/register">Create an account</a></p>
+    </div>
+  </section>
+</main>
+<%- include('../partials/foot') %>

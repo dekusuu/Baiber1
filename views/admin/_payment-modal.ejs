@@ -1,0 +1,56 @@
+<%# "Record payment" dialog. Needs: choices, requestKey, today, returnTo. admin.js fills the user when a row button is used. %>
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="/admin/payments" id="paymentForm" novalidate>
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+        <input type="hidden" name="requestKey" value="<%= requestKey %>">
+        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+        <div class="modal-header">
+          <h2 class="modal-title" id="paymentTitle">Record payment</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted-bb small">Record cash received face to face. A recorded payment cannot be edited; if it is wrong, void it and record it again.</p>
+
+          <div class="mb-3">
+            <label class="form-label" for="paymentUser">Paid by</label>
+            <select class="form-select" id="paymentUser" name="userId" required>
+              <option value="">Choose a user&hellip;</option>
+              <% choices.forEach(function (choice) { %>
+                <option value="<%= choice.id %>" data-balance="<%= choice.balanceCents %>"><%= choice.username %><%= choice.status === 'inactive' ? ' (inactive)' : '' %></option>
+              <% }) %>
+            </select>
+            <div class="form-text" id="paymentOwes" aria-live="polite"></div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="paymentAmount">Amount received</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input type="text" class="form-control" id="paymentAmount" name="amount" inputmode="decimal" autocomplete="off"
+                     placeholder="0" maxlength="12" required>
+              <button type="button" class="btn btn-soft" id="payFull" hidden>Pay full balance</button>
+            </div>
+            <div class="form-text">Whole dollars, or with cents such as 150.50.</div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-5">
+              <label class="form-label" for="paymentDate">Date received</label>
+              <input type="date" class="form-control" id="paymentDate" name="receivedOn" value="<%= today %>" max="<%= today %>">
+            </div>
+            <div class="col-sm-7">
+              <label class="form-label" for="paymentNote">Note <span class="text-muted-bb fw-normal">(optional)</span></label>
+              <input type="text" class="form-control" id="paymentNote" name="note" maxlength="255" autocomplete="off">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="paymentSubmit"><i class="bi bi-check2-circle me-2"></i>Record payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,149 @@
+<%- include('_top') %>
+<header class="adm-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="adm-sub">How Bai-ber is being used and what is owed.</p>
+  </div>
+  <a class="btn btn-primary" href="/admin/billing"><i class="bi bi-cash-coin me-2"></i>Billing / Payment</a>
+</header>
+
+<section class="tiles tiles-3" aria-label="Money">
+  <article class="tile tile-lead">
+    <h2 class="tile-label">Outstanding</h2>
+    <p class="tile-value"><%= money(stats.money.outstandingCents) %></p>
+    <p class="tile-sub"><%= stats.money.owingPeople ? 'owed by ' + stats.money.owingPeople + (stats.money.owingPeople === 1 ? ' person' : ' people') : 'Everyone is settled' %></p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Collected</h2>
+    <p class="tile-value"><%= money(stats.money.collectedCents) %></p>
+    <p class="tile-sub">recorded payments, voided ones excluded</p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Billed</h2>
+    <p class="tile-value"><%= money(stats.money.billedCents) %></p>
+    <p class="tile-sub"><%= money(stats.money.billedTodayCents) %> today</p>
+  </article>
+</section>
+
+<section class="tiles tiles-4" aria-label="Activity">
+  <article class="tile">
+    <h2 class="tile-label">Users</h2>
+    <p class="tile-value"><%= stats.users.active.toLocaleString('en-US') %></p>
+    <p class="tile-sub">active of <%= stats.users.total.toLocaleString('en-US') %> accounts</p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Online now</h2>
+    <p class="tile-value"><%= stats.users.online.toLocaleString('en-US') %></p>
+    <p class="tile-sub">people with the chat open</p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Messages sent</h2>
+    <p class="tile-value"><%= stats.messages.total.toLocaleString('en-US') %></p>
+    <p class="tile-sub"><%= stats.messages.today.toLocaleString('en-US') %> today</p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Characters billed</h2>
+    <p class="tile-value"><%= stats.chars.total.toLocaleString('en-US') %></p>
+    <p class="tile-sub"><%= stats.chars.today.toLocaleString('en-US') %> today</p>
+  </article>
+</section>
+
+<section class="adm-card" id="activityChart" aria-labelledby="chartTitle">
+  <div class="card-head">
+    <div>
+      <h2 id="chartTitle">Characters billed per day</h2>
+      <p class="adm-sub">Last 14 days. Every character sent, plus any characters added by editing a message.</p>
+    </div>
+    <button type="button" class="btn btn-soft btn-sm" id="chartToggle" aria-pressed="false" aria-controls="chartTable">
+      <i class="bi bi-table me-1"></i><span>View as table</span>
+    </button>
+  </div>
+
+  <div class="chart" id="chartPlot">
+    <div class="chart-axis" aria-hidden="true">
+      <% chart.ticks.forEach(function (tick) { %><span style="bottom: <%= tick.at %>%"><%= tick.label %></span><% }) %>
+    </div>
+    <div class="chart-plot">
+      <div class="chart-lines" aria-hidden="true">
+        <% chart.ticks.forEach(function (tick) { %><i style="bottom: <%= tick.at %>%"></i><% }) %>
+      </div>
+      <ol class="chart-cols">
+        <% chart.days.forEach(function (day) { %>
+          <li class="col" tabindex="0"
+              data-label="<%= day.label %>" data-chars="<%= day.chars %>" data-messages="<%= day.messages %>" data-cents="<%= day.cents %>"
+              aria-label="<%= day.label %>: <%= day.chars.toLocaleString('en-US') %> characters in <%= day.messages %> messages, billed <%= money(day.cents) %>">
+            <span class="col-hit">
+              <% if (day.chars > 0) { %><span class="col-bar" style="height: <%= day.height %>%"></span><% } %>
+            </span>
+            <span class="col-x"><small><%= day.month %></small><%= day.dayNumber %></span>
+          </li>
+        <% }) %>
+      </ol>
+    </div>
+    <div class="chart-tip" id="chartTip" role="status" hidden></div>
+  </div>
+
+  <div class="table-wrap" id="chartTable" hidden>
+    <table class="adm-table">
+      <thead><tr><th scope="col">Day</th><th scope="col" class="num">Messages</th><th scope="col" class="num">Characters</th><th scope="col" class="num">Billed</th></tr></thead>
+      <tbody>
+        <% chart.days.slice().reverse().forEach(function (day) { %>
+          <tr><th scope="row"><%= day.label %></th><td class="num"><%= day.messages.toLocaleString('en-US') %></td><td class="num"><%= day.chars.toLocaleString('en-US') %></td><td class="num"><%= money(day.cents) %></td></tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="adm-grid-2">
+  <section class="adm-card" aria-labelledby="topTitle">
+    <div class="card-head">
+      <h2 id="topTitle">Biggest balances owed</h2>
+      <a class="small" href="/admin/billing">All balances</a>
+    </div>
+    <% if (!stats.topOwing.length) { %>
+      <p class="empty"><i class="bi bi-emoji-smile"></i>Nobody owes anything right now.</p>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="adm-table">
+          <thead><tr><th scope="col">User</th><th scope="col" class="num">Characters</th><th scope="col" class="num">Balance</th></tr></thead>
+          <tbody>
+            <% stats.topOwing.forEach(function (row) { %>
+              <tr>
+                <td><a class="person" href="/admin/users/<%= row.id %>"><%- include('../partials/avatar', { name: row.username, id: row.id, size: 'xs' }) %><%= row.username %></a></td>
+                <td class="num"><%= row.chars.toLocaleString('en-US') %></td>
+                <td class="num"><%- include('_balance', { cents: row.balanceCents }) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="adm-card" aria-labelledby="recentTitle">
+    <div class="card-head">
+      <h2 id="recentTitle">Recent payments</h2>
+      <a class="small" href="/admin/billing?tab=payments">All payments</a>
+    </div>
+    <% if (!stats.recentPayments.length) { %>
+      <p class="empty"><i class="bi bi-receipt"></i>No payments recorded yet.</p>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="adm-table">
+          <thead><tr><th scope="col">Receipt</th><th scope="col">User</th><th scope="col" class="num">Amount</th></tr></thead>
+          <tbody>
+            <% stats.recentPayments.forEach(function (p) { %>
+              <tr>
+                <td><a href="/admin/payments/<%= p.id %>/receipt"><%= p.receiptNo %></a><br><small class="text-muted-bb"><time datetime="<%= p.paidAt %>" data-local="datetime"><%= formatUtc(p.paidAt) %></time></small></td>
+                <td><a href="/admin/users/<%= p.userId %>"><%= p.username %></a></td>
+                <td class="num"><strong><%= money(p.amountCents) %></strong></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+</div>
+<%- include('_bottom') %>

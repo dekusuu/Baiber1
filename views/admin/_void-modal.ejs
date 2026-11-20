@@ -1,0 +1,26 @@
+<%# "Void payment" dialog. admin.js sets the form action from the button that opened it. Needs: returnTo. %>
+<div class="modal fade" id="voidModal" tabindex="-1" aria-labelledby="voidTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="/admin/payments/0/void" id="voidForm" novalidate>
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+        <div class="modal-header">
+          <h2 class="modal-title" id="voidTitle">Void payment?</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2" id="voidSummary"></p>
+          <p class="text-muted-bb small">The payment stays in the history marked VOID and the amount is added back to the user&rsquo;s balance.</p>
+          <label class="form-label" for="voidReason">Reason</label>
+          <input type="text" class="form-control" id="voidReason" name="reason" minlength="3" maxlength="255" required autocomplete="off"
+                 placeholder="For example: wrong amount entered">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep payment</button>
+          <button type="submit" class="btn btn-danger">Void payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

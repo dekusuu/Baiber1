@@ -1,0 +1,137 @@
+<%- include('_top') %>
+<header class="adm-head">
+  <div>
+    <h1>Billing / Payment</h1>
+    <p class="adm-sub">1 character sent = <%= money(rateCents) %>. People pay you face to face; record each payment here.</p>
+  </div>
+  <button type="button" class="btn btn-primary" data-pay-user=""><i class="bi bi-cash-coin me-2"></i>Record payment</button>
+</header>
+
+<section class="tiles tiles-3" aria-label="Totals">
+  <article class="tile tile-lead">
+    <h2 class="tile-label">Outstanding</h2>
+    <p class="tile-value"><%= money(totals.outstandingCents) %></p>
+    <p class="tile-sub"><%= totals.owingPeople ? 'owed by ' + totals.owingPeople + (totals.owingPeople === 1 ? ' person' : ' people') : 'Everyone is settled' %></p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Collected</h2>
+    <p class="tile-value"><%= money(totals.collectedCents) %></p>
+    <p class="tile-sub">valid payments recorded</p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Billed</h2>
+    <p class="tile-value"><%= money(totals.billedCents) %></p>
+    <p class="tile-sub"><%= money(totals.billedTodayCents) %> today</p>
+  </article>
+</section>
+
+<nav class="seg adm-seg" aria-label="Billing views">
+  <a class="seg-btn<%= tab === 'balances' ? ' active' : '' %>" href="/admin/billing?tab=balances"<%- tab === 'balances' ? ' aria-current="page"' : '' %>><i class="bi bi-wallet2"></i>Balances</a>
+  <a class="seg-btn<%= tab === 'payments' ? ' active' : '' %>" href="/admin/billing?tab=payments"<%- tab === 'payments' ? ' aria-current="page"' : '' %>><i class="bi bi-receipt"></i>Payments</a>
+</nav>
+
+<% if (tab === 'balances') { %>
+  <form class="filters" method="get" action="/admin/billing" role="search">
+    <input type="hidden" name="tab" value="balances">
+    <div class="filter-search">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <input type="search" class="form-control" name="q" value="<%= query.q %>" placeholder="Search username" aria-label="Search username" maxlength="50">
+    </div>
+    <select class="form-select" name="filter" aria-label="Show">
+      <option value="owing"<%= query.filter === 'owing' ? ' selected' : '' %>>Owing</option>
+      <option value="all"<%= query.filter === 'all' ? ' selected' : '' %>>Everyone</option>
+      <option value="settled"<%= query.filter === 'settled' ? ' selected' : '' %>>Settled ($0)</option>
+      <option value="credit"<%= query.filter === 'credit' ? ' selected' : '' %>>With credit</option>
+    </select>
+    <select class="form-select" name="sort" aria-label="Sort by">
+      <option value="balance"<%= query.sort === 'balance' ? ' selected' : '' %>>Sort: balance owed</option>
+      <option value="username"<%= query.sort === 'username' ? ' selected' : '' %>>Sort: username</option>
+      <option value="chars"<%= query.sort === 'chars' ? ' selected' : '' %>>Sort: characters billed</option>
+      <option value="paid"<%= query.sort === 'paid' ? ' selected' : '' %>>Sort: amount paid</option>
+    </select>
+    <button type="submit" class="btn btn-soft">Apply</button>
+  </form>
+
+  <section class="adm-card p-0">
+    <% if (!users.length) { %>
+      <p class="empty"><i class="bi bi-emoji-smile"></i><%= query.filter === 'owing' && !query.q ? 'Nobody owes anything right now.' : 'No users match.' %></p>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="adm-table">
+          <thead><tr><th scope="col">User</th><th scope="col" class="num">Characters billed</th><th scope="col" class="num">Billed</th><th scope="col" class="num">Paid</th><th scope="col" class="num">Balance</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+          <tbody>
+            <% users.forEach(function (row) { %>
+              <tr>
+                <td><a class="person" href="/admin/users/<%= row.id %>"><%- include('../partials/avatar', { name: row.username, id: row.id, size: 'sm' }) %><strong><%= row.username %></strong></a>
+                  <% if (row.status !== 'active') { %><span class="badge-soft badge-inactive ms-2">Inactive</span><% } %></td>
+                <td class="num"><%= row.chars.toLocaleString('en-US') %></td>
+                <td class="num"><%= money(row.chargedCents) %></td>
+                <td class="num"><%= money(row.paidCents) %></td>
+                <td class="num"><%- include('_balance', { cents: row.balanceCents }) %></td>
+                <td class="actions">
+                  <button type="button" class="btn btn-soft btn-sm" data-pay-user="<%= row.id %>">Record payment</button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+  <%- include('_pager', { pager, urlFor: function (page) { return pageUrl({ page: page }); } }) %>
+<% } else { %>
+  <form class="filters" method="get" action="/admin/billing" role="search">
+    <input type="hidden" name="tab" value="payments">
+    <div class="filter-search">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <input type="search" class="form-control" name="q" value="<%= query.q %>" placeholder="Search username" aria-label="Search username" maxlength="50">
+    </div>
+    <select class="form-select" name="status" aria-label="Status">
+      <option value="all"<%= query.status === 'all' ? ' selected' : '' %>>Valid and void</option>
+      <option value="valid"<%= query.status === 'valid' ? ' selected' : '' %>>Valid only</option>
+      <option value="voided"<%= query.status === 'voided' ? ' selected' : '' %>>Void only</option>
+    </select>
+    <label class="filter-date"><span>From</span><input type="date" class="form-control" name="from" value="<%= query.from %>"></label>
+    <label class="filter-date"><span>To</span><input type="date" class="form-control" name="to" value="<%= query.to %>"></label>
+    <button type="submit" class="btn btn-soft">Apply</button>
+    <a class="btn btn-outline-secondary ms-lg-auto" href="<%= csvUrl %>"><i class="bi bi-download me-2"></i>Export CSV</a>
+  </form>
+
+  <section class="adm-card p-0">
+    <% if (!payments.length) { %>
+      <p class="empty"><i class="bi bi-receipt"></i>No payments match.</p>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="adm-table">
+          <thead><tr><th scope="col">Receipt</th><th scope="col">Received</th><th scope="col">User</th><th scope="col" class="num">Amount</th><th scope="col">Note</th><th scope="col">Recorded by</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+          <tbody>
+            <% payments.forEach(function (p) { %>
+              <tr class="<%= p.voided ? 'is-void' : '' %>">
+                <td><a href="/admin/payments/<%= p.id %>/receipt"><%= p.receiptNo %></a></td>
+                <td><time datetime="<%= p.paidAt %>" data-local="datetime"><%= formatUtc(p.paidAt) %></time></td>
+                <td><a href="/admin/users/<%= p.userId %>"><%= p.username %></a></td>
+                <td class="num"><strong><%= money(p.amountCents) %></strong></td>
+                <td class="note"><%= p.note || '-' %></td>
+                <td><%= p.recorder %></td>
+                <td>
+                  <% if (p.voided) { %><span class="badge-soft badge-inactive">Void</span><br><small class="text-muted-bb"><%= p.voidReason %></small>
+                  <% } else { %><span class="badge-soft badge-active">Valid</span><% } %>
+                </td>
+                <td class="actions">
+                  <a class="btn btn-outline-secondary btn-sm" href="/admin/payments/<%= p.id %>/receipt">Receipt</a>
+                  <% if (!p.voided) { %><button type="button" class="btn btn-outline-danger btn-sm" data-void-payment="<%= p.id %>" data-receipt="<%= p.receiptNo %>" data-amount="<%= money(p.amountCents) %>" data-username="<%= p.username %>">Void</button><% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-foot">Valid payments matching these filters add up to <strong><%= money(collectedCents) %></strong>.</p>
+    <% } %>
+  </section>
+  <%- include('_pager', { pager, urlFor: function (page) { return pageUrl({ page: page }); } }) %>
+<% } %>
+
+<%- include('_payment-modal') %>
+<%- include('_void-modal') %>
+<%- include('_bottom') %>

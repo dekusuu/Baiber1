@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="csrf-token" content="<%= locals.csrfToken || '' %>">
+  <meta name="theme-color" content="#7360F2">
+  <title><%= locals.title ? locals.title + ' · Bai-ber' : 'Bai-ber' %></title>
+  <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/vendor/inter/index.css">
+  <link rel="stylesheet" href="/css/base.css">
+<% (locals.styles || []).forEach(function (href) { %>  <link rel="stylesheet" href="<%= href %>">
+<% }) %></head>
+<body class="<%= locals.bodyClass || '' %>">

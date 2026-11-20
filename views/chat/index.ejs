@@ -1,0 +1,248 @@
+<%- include('../partials/head', { styles: ['/css/chat.css'], bodyClass: 'chat-body' }) %>
+<div class="app view-list" id="app"
+     data-me-id="<%= me.id %>"
+     data-me-username="<%= me.username %>"
+     data-me-created="<%= me.createdAt %>"
+     data-max-length="<%= maxLength %>"
+     data-rate-cents="<%= billing.rateCents %>"
+     data-balance-cents="<%= billing.balanceCents %>">
+
+  <%# ===== Section A: navigation rail ===== %>
+  <nav class="rail" aria-label="Main navigation">
+    <a class="rail-logo-link" href="/chat" aria-label="Bai-ber home">
+      <img class="rail-logo" src="/images/logo.svg" alt="" width="44" height="44">
+    </a>
+
+    <button type="button" class="rail-btn active" data-tab="chats" aria-label="Chats" aria-current="page">
+      <i class="bi bi-chat-dots-fill"></i><small>Chats</small>
+      <span class="rail-badge" id="railBadge" hidden>0</span>
+    </button>
+    <button type="button" class="rail-btn" data-tab="friends" aria-label="Friends">
+      <i class="bi bi-people-fill"></i><small>Friends</small>
+      <span class="rail-badge" id="friendsBadge" hidden>0</span>
+    </button>
+
+    <div class="rail-spacer"></div>
+
+    <button type="button" class="rail-btn" id="profileBtn" aria-label="Profile and settings">
+      <i class="bi bi-gear-fill"></i><small>Profile</small>
+    </button>
+    <form method="post" action="/logout" class="rail-form">
+      <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+      <button type="submit" class="rail-btn" aria-label="Log out"><i class="bi bi-box-arrow-right"></i><small>Log out</small></button>
+    </form>
+    <button type="button" class="rail-avatar" id="railAvatar" aria-label="Your profile (<%= me.username %>)" title="<%= me.username %>">
+      <%- include('../partials/avatar', { name: me.username, id: me.id, size: 'md' }) %>
+    </button>
+  </nav>
+
+  <%# ===== Section B: conversations / friends list ===== %>
+  <aside class="panel" id="panel" aria-label="Conversations">
+    <header class="panel-head">
+      <h1 id="panelTitle">Chats</h1>
+      <div class="panel-head-actions">
+        <button type="button" class="balance-pill" id="balancePill" title="Your balance (click for billing details)" aria-label="Your balance. Open billing details.">
+          <i class="bi bi-wallet2" aria-hidden="true"></i><span id="balanceText"><%= money(billing.balanceCents) %></span>
+        </button>
+        <button type="button" class="icon-btn" id="newChatBtn" title="New conversation" aria-label="New conversation">
+          <i class="bi bi-pencil-square"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="search">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <input type="search" id="searchInput" placeholder="Search chats and friends" aria-label="Search chats and friends"
+             autocomplete="off" maxlength="50">
+      <button type="button" class="search-clear" id="searchClear" aria-label="Clear search" hidden><i class="bi bi-x-circle-fill"></i></button>
+    </div>
+
+    <%# Chats tab only: All / Unread filter (All is the default) %>
+    <div class="seg" id="chatFilter" role="group" aria-label="Filter chats">
+      <button type="button" class="seg-btn active" aria-pressed="true" data-filter="all">All</button>
+      <button type="button" class="seg-btn" aria-pressed="false" data-filter="unread">Unread<span class="seg-count" id="unreadChatsCount" hidden>0</span></button>
+    </div>
+
+    <%# Friends tab only: My Friends / Requests / Sent / Find %>
+    <div class="seg" id="friendSeg" role="tablist" aria-label="Friends sections" hidden>
+      <button type="button" class="seg-btn active" role="tab" aria-selected="true" data-seg="friends">Friends</button>
+      <button type="button" class="seg-btn" role="tab" aria-selected="false" data-seg="requests">Requests<span class="seg-count" id="requestsCount" hidden>0</span></button>
+      <button type="button" class="seg-btn" role="tab" aria-selected="false" data-seg="sent">Sent</button>
+      <button type="button" class="seg-btn" role="tab" aria-selected="false" data-seg="find"><i class="bi bi-person-plus"></i>Find</button>
+    </div>
+
+    <div class="panel-list" id="panelList" aria-live="polite"></div>
+  </aside>
+
+  <%# ===== Section C: chat window ===== %>
+  <main class="chat" id="chat">
+    <div class="conn-banner" id="connBanner" hidden role="status">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Connection lost. Reconnecting&hellip;</span>
+    </div>
+
+    <section class="chat-empty" id="chatEmpty">
+      <img src="/images/logo.svg" alt="" width="96" height="96">
+      <h2>Welcome to Bai-ber, <%= me.username %></h2>
+      <p>Select a conversation from the list, or pick one of your friends to start a new one.</p>
+      <button type="button" class="btn btn-primary px-4" id="emptyStartBtn"><i class="bi bi-people-fill me-2"></i>Message a friend</button>
+    </section>
+
+    <section class="chat-room" id="chatRoom" hidden>
+      <header class="chat-head">
+        <button type="button" class="icon-btn back-btn" id="backBtn" aria-label="Back to conversations"><i class="bi bi-arrow-left"></i></button>
+        <span id="headAvatar"></span>
+        <div class="head-meta">
+          <div class="head-name" id="headName"></div>
+          <div class="head-status" id="headStatus"></div>
+        </div>
+      </header>
+
+      <div class="messages" id="messages" tabindex="0" aria-label="Messages" aria-live="polite"></div>
+
+      <div class="composer-wrap">
+        <div class="edit-bar" id="editBar" hidden>
+          <i class="bi bi-pencil-fill"></i>
+          <div class="edit-text"><strong>Editing message</strong><span id="editPreview"></span></div>
+          <button type="button" class="icon-btn plain small" id="editCancel" aria-label="Cancel editing"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <%# Explains why the composer is disabled (not friends / request pending / inactive account) %>
+        <div class="composer-note" id="composerNote" hidden role="status">
+          <i class="bi bi-lock-fill" id="composerNoteIcon"></i>
+          <span class="composer-note-text" id="composerNoteText"></span>
+          <span class="composer-note-actions" id="composerNoteActions"></span>
+        </div>
+        <%# What the message in the box will cost (1 character = $1). Shown while typing, also on phones. %>
+        <div class="cost-line" id="costLine" hidden role="status">
+          <i class="bi bi-cash-coin" aria-hidden="true"></i><span id="costText"></span>
+        </div>
+        <form class="composer" id="composer" autocomplete="off">
+          <textarea id="composerInput" rows="1" maxlength="<%= maxLength %>" placeholder="Type a message" aria-label="Message"></textarea>
+          <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message" disabled><i class="bi bi-send-fill"></i></button>
+        </form>
+        <div class="composer-hint" id="composerHint"><span><kbd>Enter</kbd> to send &middot; <kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line</span><span id="charCount" hidden></span></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<%# ===== Profile / settings dialog ===== %>
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="profileTitle">Profile &amp; settings</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-card">
+          <%- include('../partials/avatar', { name: me.username, id: me.id, size: 'lg' }) %>
+          <div>
+            <div class="profile-name"><%= me.username %></div>
+            <div class="profile-sub">Member since <time datetime="<%= me.createdAt %>" data-local="date"><%= formatUtc(me.createdAt) %></time></div>
+          </div>
+        </div>
+
+        <section class="billing-card" aria-labelledby="billingTitle">
+          <h3 class="profile-section" id="billingTitle">Billing</h3>
+          <div class="billing-top">
+            <div>
+              <small>Your balance</small>
+              <div class="billing-balance" id="billingBalance"><%= money(billing.balanceCents) %></div>
+            </div>
+            <div class="billing-totals">
+              <div><small>Charged</small><strong id="billingCharged">&ndash;</strong></div>
+              <div><small>Paid</small><strong id="billingPaid">&ndash;</strong></div>
+            </div>
+          </div>
+          <p class="billing-note"><i class="bi bi-info-circle" aria-hidden="true"></i>
+            <span><span id="billingRate">1 character sent = <%= money(billing.rateCents) %></span>. Pay at the counter and an administrator records your payment.</span></p>
+          <p class="billing-note" id="billingLimit" hidden></p>
+          <h4 class="billing-sub">Recent payments</h4>
+          <ul class="billing-list" id="billingPayments"><li class="billing-empty">Loading&hellip;</li></ul>
+          <h4 class="billing-sub">Recent charges</h4>
+          <ul class="billing-list" id="billingCharges"><li class="billing-empty">Loading&hellip;</li></ul>
+        </section>
+
+        <form id="usernameForm" class="mb-4" novalidate>
+          <label class="form-label" for="profileUsername">Username</label>
+          <input class="form-control" id="profileUsername" value="<%= me.username %>" maxlength="24"
+                 autocomplete="username" aria-describedby="renameError" required>
+          <div class="invalid-feedback" id="renameError" role="alert"></div>
+          <button class="btn btn-primary btn-sm mt-2" type="submit">Save username</button>
+        </form>
+
+        <h3 class="profile-section">Change password</h3>
+        <form id="passwordForm" novalidate>
+          <div class="alert alert-danger py-2 small" id="passwordError" hidden role="alert"></div>
+          <div class="alert alert-success py-2 small" id="passwordSuccess" hidden role="status"></div>
+          <div class="mb-3">
+            <label class="form-label" for="pwCurrent">Current password</label>
+            <input type="password" class="form-control" id="pwCurrent" autocomplete="current-password" maxlength="72" required>
+            <div class="invalid-feedback" id="pwCurrentError"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="pwNew">New password</label>
+            <input type="password" class="form-control" id="pwNew" autocomplete="new-password" minlength="8" maxlength="72" required>
+            <div class="invalid-feedback" id="pwNewError"></div>
+            <div class="form-text">At least 8 characters. Other devices will be signed out.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="pwConfirm">Confirm new password</label>
+            <input type="password" class="form-control" id="pwConfirm" autocomplete="new-password" maxlength="72" required>
+            <div class="invalid-feedback" id="pwConfirmError"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="pwSubmit">Update password</button>
+        </form>
+
+        <p class="privacy-note"><i class="bi bi-info-circle"></i>
+          Bai-ber is a standard web messaging app. Messages are stored on the server and are not end-to-end encrypted.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# ===== Delete message confirmation ===== %>
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="deleteTitle">Delete message?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2" id="deleteText">This message will be removed for both of you.</p>
+        <blockquote class="delete-preview" id="deletePreview"></blockquote>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# ===== Generic confirmation (cancel friend request) ===== %>
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered confirm-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirmTitle">Are you sure?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-person" id="confirmPerson"></div>
+        <p class="mb-0" id="confirmText"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="confirmCancelBtn">Keep</button>
+        <button type="button" class="btn btn-danger" id="confirmOkBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot', { scripts: ['/socket.io/socket.io.js', '/js/chat.js'] }) %>

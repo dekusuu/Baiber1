@@ -1,0 +1,14 @@
+<%# Usage: include('_pager', { pager, urlFor: (page) => '/admin/users?page=' + page }) %>
+<% if (pager.pages > 1) { %>
+<nav class="adm-pager" aria-label="Pages">
+  <span class="adm-pager-info">Page <%= pager.page %> of <%= pager.pages %> &middot; <%= pager.total.toLocaleString('en-US') %> in total</span>
+  <div class="btn-group">
+    <% if (pager.page > 1) { %><a class="btn btn-outline-secondary btn-sm" href="<%= urlFor(pager.page - 1) %>">Previous</a>
+    <% } else { %><span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true">Previous</span><% } %>
+    <% if (pager.page < pager.pages) { %><a class="btn btn-outline-secondary btn-sm" href="<%= urlFor(pager.page + 1) %>">Next</a>
+    <% } else { %><span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true">Next</span><% } %>
+  </div>
+</nav>
+<% } else if (pager.total > 0) { %>
+<p class="adm-pager-info mb-0 mt-3"><%= pager.total.toLocaleString('en-US') %> in total</p>
+<% } %>

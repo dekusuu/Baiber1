@@ -1,0 +1,13 @@
+<%# Flash messages set on the server (req.flash) appear here as toasts. common.js shows them. %>
+<div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" aria-live="polite" aria-atomic="true">
+<% (locals.flash || []).forEach(function (item) {
+     var type = item.type === 'error' ? 'error' : (item.type === 'success' ? 'success' : 'info');
+     var icon = type === 'error' ? 'bi-exclamation-circle-fill' : (type === 'success' ? 'bi-check-circle-fill' : 'bi-info-circle-fill'); %>
+  <div class="toast bb-toast <%= type %>" role="status" data-flash="true">
+    <div class="d-flex">
+      <div class="toast-body"><i class="bi <%= icon %> toast-icon"></i><span><%= item.message %></span></div>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+<% }) %>
+</div>

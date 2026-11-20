@@ -1,0 +1,64 @@
+<%- include('../partials/head', { styles: ['/css/auth.css'], bodyClass: 'auth-body' }) %>
+<% var e = locals.errors || {}; %>
+<main class="auth-shell">
+  <%- include('../partials/auth-brand') %>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-mobile-logo">
+        <img src="/images/logo.svg" alt="" width="40" height="40"><span>Bai-ber</span>
+      </div>
+
+      <h1>Create your account</h1>
+      <p class="auth-lead">Pick a username and start chatting in a minute.</p>
+
+      <% if (e.form) { %>
+        <div class="alert alert-danger d-flex gap-2 align-items-start" role="alert">
+          <i class="bi bi-exclamation-circle-fill"></i><span><%= e.form %></span>
+        </div>
+      <% } %>
+
+      <form method="post" action="/register" class="needs-validation" novalidate autocomplete="on">
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+
+        <div class="mb-3">
+          <label class="form-label" for="username">Username</label>
+          <div class="input-icon">
+            <i class="bi bi-person lead-icon"></i>
+            <input type="text" class="form-control <%= e.username ? 'is-invalid' : '' %>" aria-describedby="usernameFeedback" id="username" name="username"
+                   value="<%= locals.username || '' %>" required minlength="6" maxlength="24"
+                   pattern="[A-Za-z0-9._\-]{6,24}" autocomplete="username" autocapitalize="none" spellcheck="false" autofocus>
+          </div>
+          <div id="usernameFeedback" class="invalid-feedback"><%= e.username || 'Use 6-24 letters, numbers, dots, underscores or hyphens.' %></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-icon has-toggle">
+            <i class="bi bi-lock lead-icon"></i>
+            <input type="password" class="form-control <%= e.password ? 'is-invalid' : '' %>" id="password" name="password"
+                   required minlength="8" maxlength="72" autocomplete="new-password">
+            <button type="button" class="toggle-visibility" data-toggle-password="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="invalid-feedback"><%= e.password || 'Password must be at least 8 characters.' %></div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label" for="confirmPassword">Confirm password</label>
+          <div class="input-icon has-toggle">
+            <i class="bi bi-shield-lock lead-icon"></i>
+            <input type="password" class="form-control <%= e.confirmPassword ? 'is-invalid' : '' %>" id="confirmPassword" name="confirmPassword"
+                   data-match="password" required maxlength="72" autocomplete="new-password">
+            <button type="button" class="toggle-visibility" data-toggle-password="confirmPassword" aria-label="Show password"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="invalid-feedback"><%= e.confirmPassword || 'Passwords do not match.' %></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100">Create account</button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+  </section>
+</main>
+<%- include('../partials/foot') %>

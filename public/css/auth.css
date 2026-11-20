@@ -1,0 +1,66 @@
+/* =========================================================
+   Bai-ber: login and register pages
+   ========================================================= */
+.auth-body { background: var(--bb-surface); }
+
+.auth-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(380px, 46%) 1fr;
+}
+
+/* ---------- Brand panel (left) ---------- */
+.auth-brand {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  padding: 40px 56px;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(900px 500px at 110% -10%, rgba(255, 255, 255, 0.18), transparent 60%),
+    radial-gradient(700px 500px at -20% 110%, rgba(255, 255, 255, 0.10), transparent 60%),
+    linear-gradient(155deg, #8A79FF 0%, var(--bb-primary) 38%, var(--bb-deep) 100%);
+}
+.brand-top { display: flex; align-items: center; gap: 12px; }
+.brand-logo { border-radius: 14px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22); }
+.brand-name { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+
+.brand-hero { margin: auto 0; padding: 32px 0; max-width: 460px; }
+.brand-hero h2 { font-size: 40px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 16px; }
+.brand-hero p { font-size: 16px; line-height: 1.55; opacity: 0.9; margin-bottom: 32px; }
+
+.bubble-demo { display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
+.demo-bubble { padding: 11px 16px; font-size: 14.5px; line-height: 1.4; border-radius: 18px; max-width: 84%; box-shadow: 0 6px 16px rgba(37, 37, 53, 0.16); }
+.demo-bubble.in { background: #fff; color: var(--bb-text); border-bottom-left-radius: 6px; align-self: flex-start; }
+.demo-bubble.out { background: #3E2FA3; color: #fff; border-bottom-right-radius: 6px; align-self: flex-end; }
+
+.brand-note { font-size: 12.5px; line-height: 1.5; opacity: 0.8; max-width: 440px; margin: 0; display: flex; gap: 8px; }
+.brand-note i { margin-top: 2px; }
+
+/* ---------- Form panel (right) ---------- */
+.auth-panel { display: grid; place-items: center; padding: 32px 24px; background: var(--bb-surface); }
+.auth-card { width: 100%; max-width: 400px; }
+.auth-card h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+.auth-lead { color: var(--bb-muted); margin-bottom: 28px; }
+.auth-mobile-logo { display: none; align-items: center; gap: 10px; margin-bottom: 28px; font-weight: 800; font-size: 22px; letter-spacing: -0.02em; }
+.auth-mobile-logo img { border-radius: 12px; }
+.auth-switch { text-align: center; color: var(--bb-muted); margin: 24px 0 0; font-size: 14px; }
+.auth-switch a { font-weight: 600; text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
+
+.auth-card .alert { border-radius: 12px; font-size: 14px; border: 0; }
+.auth-card .alert-danger { background: rgba(229, 72, 77, 0.10); color: #B42A30; }
+.auth-card .alert-warning { background: #FFF4E5; color: #8A5A00; }
+.auth-card .btn-lg { padding: 0.75rem 1rem; font-size: 15.5px; }
+
+/* ---------- Smaller screens ---------- */
+@media (max-width: 991.98px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-brand { display: none; }
+  .auth-mobile-logo { display: flex; }
+}
+
+.input-icon:has(.is-invalid) + .invalid-feedback,
+.was-validated .input-icon:has(:invalid) + .invalid-feedback { display: block; }

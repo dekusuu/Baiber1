@@ -1,0 +1,40 @@
+<%- include('_top') %>
+<div class="receipt-actions">
+  <a class="btn btn-outline-secondary" href="/admin/billing?tab=payments"><i class="bi bi-arrow-left me-2"></i>Payments</a>
+  <a class="btn btn-outline-secondary" href="/admin/users/<%= payment.userId %>"><i class="bi bi-person me-2"></i><%= payment.username %></a>
+  <button type="button" class="btn btn-primary ms-auto" data-print><i class="bi bi-printer me-2"></i>Print receipt</button>
+</div>
+
+<article class="receipt<%= payment.voided ? ' is-void' : '' %>" aria-labelledby="receiptTitle">
+  <header class="receipt-head">
+    <div class="receipt-brand"><img src="/images/logo.svg" alt="" width="40" height="40"><span>Bai-ber</span></div>
+    <div class="receipt-no">
+      <h1 id="receiptTitle">Official receipt</h1>
+      <p><%= payment.receiptNo %></p>
+    </div>
+  </header>
+
+  <% if (payment.voided) { %>
+    <div class="receipt-void" role="alert">
+      <strong>VOID</strong> &mdash; cancelled by <%= payment.voider %> on
+      <time datetime="<%= payment.voidedAt %>" data-local="datetime"><%= formatUtc(payment.voidedAt) %></time>.
+      Reason: <%= payment.voidReason %>
+    </div>
+  <% } %>
+
+  <p class="receipt-amount"><%= money(payment.amountCents) %></p>
+
+  <dl class="receipt-list">
+    <div><dt>Received from</dt><dd><%= payment.username %></dd></div>
+    <div><dt>Date received</dt><dd><time datetime="<%= payment.paidAt %>" data-local="datetime"><%= formatUtc(payment.paidAt) %></time></dd></div>
+    <div><dt>Payment for</dt><dd>Characters sent in Bai-ber (<%= money(rateCents) %> per character)</dd></div>
+    <% if (payment.note) { %><div><dt>Note</dt><dd><%= payment.note %></dd></div><% } %>
+    <div><dt>Received by</dt><dd><%= payment.recorder %></dd></div>
+  </dl>
+
+  <footer class="receipt-foot">
+    <span>Balance of <%= payment.username %> as of <time datetime="<%= printedAt %>" data-local="datetime"><%= formatUtc(printedAt) %></time></span>
+    <strong><%- include('_balance', { cents: balance.balanceCents }) %></strong>
+  </footer>
+</article>
+<%- include('_bottom') %>

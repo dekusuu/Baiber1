@@ -1,0 +1,30 @@
+<%# Admin layout, top half: navigation rail (same component as the chat) + content. Pages call include('_top') and end with include('_bottom'). %>
+<%- include('../partials/head', { styles: ['/css/admin.css'], bodyClass: 'admin-body' }) %>
+<a class="visually-hidden-focusable adm-skip" href="#main">Skip to content</a>
+<div class="adm">
+  <nav class="rail adm-rail" aria-label="Admin sections">
+    <a class="rail-logo-link" href="/admin" aria-label="Bai-ber admin home">
+      <img class="rail-logo" src="/images/logo.svg" alt="" width="44" height="44">
+    </a>
+    <span class="rail-tag">Admin</span>
+
+    <a class="rail-btn<%= section === 'dashboard' ? ' active' : '' %>" href="/admin" aria-label="Dashboard" title="Dashboard"<%- section === 'dashboard' ? ' aria-current="page"' : '' %>>
+      <i class="bi bi-speedometer2"></i><small>Dashboard</small></a>
+    <a class="rail-btn<%= section === 'users' ? ' active' : '' %>" href="/admin/users" aria-label="Users" title="Users"<%- section === 'users' ? ' aria-current="page"' : '' %>>
+      <i class="bi bi-people-fill"></i><small>Users</small></a>
+    <a class="rail-btn<%= section === 'billing' ? ' active' : '' %>" href="/admin/billing" aria-label="Billing / Payment" title="Billing / Payment"<%- section === 'billing' ? ' aria-current="page"' : '' %>>
+      <i class="bi bi-cash-coin"></i><small>Billing</small></a>
+
+    <div class="rail-spacer"></div>
+
+    <form method="post" action="/logout" class="rail-form">
+      <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+      <button type="submit" class="rail-btn" aria-label="Log out"><i class="bi bi-box-arrow-right"></i><small>Log out</small></button>
+    </form>
+    <span class="rail-avatar" title="<%= currentUser.username %> (Administrator)">
+      <span class="visually-hidden">Signed in as <%= currentUser.username %>, administrator</span>
+      <%- include('../partials/avatar', { name: currentUser.username, id: currentUser.id, size: 'md' }) %>
+    </span>
+  </nav>
+
+  <main class="adm-main" id="main">

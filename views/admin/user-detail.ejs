@@ -1,0 +1,138 @@
+<%- include('_top') %>
+<nav class="adm-crumb" aria-label="Breadcrumb"><a href="/admin/users"><i class="bi bi-arrow-left me-1"></i>Users</a></nav>
+
+<header class="adm-head">
+  <div class="person-head">
+    <%- include('../partials/avatar', { name: person.username, id: person.id, size: 'lg' }) %>
+    <div>
+      <h1><%= person.username %></h1>
+      <p class="adm-sub">
+        <span class="badge-soft <%= person.status === 'active' ? 'badge-active' : 'badge-inactive' %>"><%= person.status === 'active' ? 'Active' : 'Inactive' %></span>
+        <span class="ms-2">Member since <time datetime="<%= person.createdAt %>" data-local="date"><%= formatUtc(person.createdAt) %></time></span>
+      </p>
+    </div>
+  </div>
+  <div class="head-actions">
+    <button type="button" class="btn btn-primary" data-pay-user="<%= person.id %>"><i class="bi bi-cash-coin me-2"></i>Record payment</button>
+    <% if (person.status === 'active') { %>
+      <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#statusModal"><i class="bi bi-person-slash me-2"></i>Deactivate</button>
+    <% } else { %>
+      <form method="post" action="/admin/users/<%= person.id %>/status" class="d-inline">
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+        <input type="hidden" name="status" value="active">
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-person-check me-2"></i>Reactivate</button>
+      </form>
+    <% } %>
+  </div>
+</header>
+
+<section class="tiles tiles-4" aria-label="Billing summary">
+  <article class="tile tile-lead">
+    <h2 class="tile-label">Balance</h2>
+    <p class="tile-value"><%- include('_balance', { cents: person.balanceCents }) %></p>
+    <p class="tile-sub"><%= person.balanceCents > 0 ? 'still to be paid' : (person.balanceCents < 0 ? 'paid in advance' : 'nothing owed') %></p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Billed</h2>
+    <p class="tile-value"><%= money(person.chargedCents) %></p>
+    <p class="tile-sub"><%= money(rate) %> per character</p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Paid</h2>
+    <p class="tile-value"><%= money(person.paidCents) %></p>
+    <p class="tile-sub"><%= payments.filter(function (p) { return !p.voided; }).length %> recorded payment<%= payments.filter(function (p) { return !p.voided; }).length === 1 ? '' : 's' %></p>
+  </article>
+  <article class="tile">
+    <h2 class="tile-label">Characters billed</h2>
+    <p class="tile-value"><%= person.chars.toLocaleString('en-US') %></p>
+    <p class="tile-sub"><%= person.messages.toLocaleString('en-US') %> messages sent in total</p>
+  </article>
+</section>
+
+<section class="adm-card" aria-labelledby="payTitle">
+  <div class="card-head"><h2 id="payTitle">Payments</h2></div>
+  <% if (!payments.length) { %>
+    <p class="empty"><i class="bi bi-receipt"></i>No payments recorded for <%= person.username %> yet.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="adm-table">
+        <thead><tr><th scope="col">Receipt</th><th scope="col">Received</th><th scope="col" class="num">Amount</th><th scope="col">Note</th><th scope="col">Recorded by</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+        <tbody>
+          <% payments.forEach(function (p) { %>
+            <tr class="<%= p.voided ? 'is-void' : '' %>">
+              <td><a href="/admin/payments/<%= p.id %>/receipt"><%= p.receiptNo %></a></td>
+              <td><time datetime="<%= p.paidAt %>" data-local="datetime"><%= formatUtc(p.paidAt) %></time></td>
+              <td class="num"><strong><%= money(p.amountCents) %></strong></td>
+              <td class="note"><%= p.note || '-' %></td>
+              <td><%= p.recorder %></td>
+              <td>
+                <% if (p.voided) { %><span class="badge-soft badge-inactive">Void</span><br><small class="text-muted-bb"><%= p.voidReason %></small>
+                <% } else { %><span class="badge-soft badge-active">Valid</span><% } %>
+              </td>
+              <td class="actions">
+                <a class="btn btn-outline-secondary btn-sm" href="/admin/payments/<%= p.id %>/receipt">Receipt</a>
+                <% if (!p.voided) { %><button type="button" class="btn btn-outline-danger btn-sm" data-void-payment="<%= p.id %>" data-receipt="<%= p.receiptNo %>" data-amount="<%= money(p.amountCents) %>" data-username="<%= p.username %>">Void</button><% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<section class="adm-card" aria-labelledby="chargeTitle">
+  <div class="card-head">
+    <div>
+      <h2 id="chargeTitle">Charges</h2>
+      <p class="adm-sub">One line per message sent, and per edit that made a message longer. Message text is never shown. Messages sent before billing started are free and are not listed.</p>
+    </div>
+  </div>
+  <% if (!charges.length) { %>
+    <p class="empty"><i class="bi bi-chat-dots"></i>No charges yet.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="adm-table">
+        <thead><tr><th scope="col">When</th><th scope="col">Type</th><th scope="col" class="num">Characters</th><th scope="col" class="num">Amount</th><th scope="col" class="num">Message</th></tr></thead>
+        <tbody>
+          <% charges.forEach(function (c) { %>
+            <tr>
+              <td><time datetime="<%= c.at %>" data-local="datetime"><%= formatUtc(c.at) %></time></td>
+              <td><%= c.kind === 'send' ? 'Message sent' : 'Edit added characters' %></td>
+              <td class="num"><%= c.chars.toLocaleString('en-US') %></td>
+              <td class="num"><%= money(c.amountCents) %></td>
+              <td class="num text-muted-bb">#<%= c.messageId %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+  <%- include('_pager', { pager, urlFor: chargesUrl }) %>
+</section>
+
+<% if (person.status === 'active') { %>
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <form method="post" action="/admin/users/<%= person.id %>/status">
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+        <input type="hidden" name="status" value="inactive">
+        <div class="modal-header"><h2 class="modal-title" id="statusTitle">Deactivate <%= person.username %>?</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <p class="mb-0">They are signed out on every device straight away and cannot sign in until you reactivate them. Their balance and history are kept.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Deactivate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<%- include('_payment-modal') %>
+<%- include('_void-modal') %>
+<%- include('_bottom') %>

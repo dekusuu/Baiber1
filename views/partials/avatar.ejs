@@ -1,0 +1,2 @@
+<%# Usage: include('../partials/avatar', { name: 'maria', id: 7, size: 'md' }) %>
+<span class="avatar avatar-<%= locals.size || 'md' %> av-<%= Number(locals.id) % 8 %>" aria-hidden="true"><%= String(locals.name || '?').charAt(0) %></span>
