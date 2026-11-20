@@ -1,8 +1,8 @@
 /**
  * Authentication: register, login, logout and "change my password".
  *
- * Also home of createLimiter(), the tiny in-memory rate limiter used here (failed logins,
- * sign-ups, password changes) and by chatController (friend requests, socket events).
+ * Also home of createLimiter(), the tiny in-memory rate limiter for failed logins and
+ * failed password-change attempts.
  */
 const bcrypt = require('bcryptjs');
 const userModel = require('../models/userModel');
@@ -60,11 +60,6 @@ function createLimiter({ windowMs, max }) {
 const WINDOW_15_MIN = 15 * 60 * 1000;
 const loginByAccount = createLimiter({ windowMs: WINDOW_15_MIN, max: 8 });
 const loginByIp = createLimiter({ windowMs: WINDOW_15_MIN, max: 40 });
-// Sign-ups per network address per hour. A whole classroom can share one address, so the default is generous.
-const registerByIp = createLimiter({
-  windowMs: 60 * 60 * 1000,
-  max: Number(process.env.REGISTER_LIMIT_PER_HOUR) || 30,
-});
 const passwordByUser = createLimiter({ windowMs: WINDOW_15_MIN, max: 5 });
 
 const text = (value) => (typeof value === 'string' ? value : '');
@@ -80,7 +75,6 @@ function disconnectSockets(req, shouldClose) {
 
 module.exports = {
   homeFor,
-  createLimiter,
   disconnectSockets,
 
   showLogin(req, res) {
@@ -153,10 +147,6 @@ module.exports = {
       const confirmPassword = text(req.body && req.body.confirmPassword);
       const show = (status, errors) =>
         res.status(status).render('auth/register', { title: 'Create account', errors, username });
-
-      if (!registerByIp.consume(req.ip).allowed) {
-        return show(429, { form: 'Too many sign-ups from this network. Please try again later.' });
-      }
 
       const errors = {};
       const usernameError = userModel.validateUsername(username);

@@ -65,13 +65,12 @@ There are two roles.
 | --- | --- | --- |
 | **Dashboard** | `/admin` | Outstanding, collected and billed totals; users, online now, messages and characters (all with a "today" figure); characters billed per day for 14 days (chart with a "View as table" toggle); biggest balances; recent payments |
 | **Users** | `/admin/users`, `/admin/users/:id` | Searchable, filterable, sortable user list. A user page shows balance, activity, payments and charges, and lets you **deactivate / reactivate** the account (deactivating signs the person out of every device immediately) |
-| **Billing / Payment** | `/admin/billing` | Balances tab (who owes what, with a **Record payment** button on each row) and Payments tab (searchable, filterable by date and voided, **Export CSV**, receipts, void) |
+| **Billing / Payment** | `/admin/billing` | Balances tab (who owes what, with a **Record payment** button on each row) and Payments tab (searchable, filterable by date and voided, receipts, void) |
 
 Notes:
 - "Today" and the daily chart use the time zone set by `ADMIN_UTC_OFFSET_MINUTES` (Manila = 480).
 - "Date received" on a payment defaults to now. You may choose an earlier day (up to 366 days back); future dates are refused.
 - Submitting the payment form twice (double click, refresh) records it once.
-- The CSV export neutralises spreadsheet formulas, so it is safe to open in Excel.
 
 ## Settings
 
@@ -83,7 +82,7 @@ All settings live in `.env` (see `.env.example`).
 | `BILLING_CREDIT_LIMIT` | unset | Maximum unpaid balance in dollars. Unset = no limit, `0` = prepaid |
 | `ADMIN_UTC_OFFSET_MINUTES` | `0` | Your time zone in minutes ahead of UTC (Manila = `480`) |
 | `SESSION_SECRET` | none, required | Signs the session cookie |
-| `SESSION_DAYS`, `BCRYPT_ROUNDS`, `REGISTER_LIMIT_PER_HOUR`, `TRUST_PROXY`, `COOKIE_SECURE`, `ALLOWED_ORIGINS` | see `.env.example` | Optional hardening and deployment settings |
+| `SESSION_DAYS`, `BCRYPT_ROUNDS`, `TRUST_PROXY`, `COOKIE_SECURE`, `ALLOWED_ORIGINS` | see `.env.example` | Optional hardening and deployment settings |
 
 If you change `BILLING_RATE_CENTS` later, only **new** charges use the new rate; past charges keep the amount they were recorded at.
 
@@ -107,7 +106,7 @@ scripts/migrate.js              upgrades an existing database (npm run migrate)
 scripts/create-admin.js         creates an administrator (npm run admin:create)
 models/billingModel.js          rates, charges, payments, balances, credit limit
 models/adminModel.js            read-only queries behind the admin pages
-controllers/adminController.js  Dashboard, Users, Billing / Payment, receipts, CSV
+controllers/adminController.js  Dashboard, Users, Billing / Payment, receipts
 views/admin/                    admin pages (EJS)
 public/css/admin.css            admin styles
 public/js/admin.js              payment modal, void modal, chart tooltip, table toggle
@@ -127,7 +126,7 @@ set BAIBER_INTEGRATION=1        (Windows cmd)   |   $env:BAIBER_INTEGRATION=1   
 npm test
 ```
 
-Use a MySQL account that may create databases (for example `root` on your own machine) in `.env`. They run on their own database, `bai_ber_test`, and refuse any database name that does not end in `_test`, so your real `bai_ber` is never touched. They cover charging, edits, deletes, credit limits (including simultaneous sends), payments, voids, receipts, CSV export, access control and the admin pages.
+Use a MySQL account that may create databases (for example `root` on your own machine) in `.env`. They run on their own database, `bai_ber_test`, and refuse any database name that does not end in `_test`, so your real `bai_ber` is never touched. They cover charging, edits, deletes, credit limits (including simultaneous sends), payments, voids, receipts, access control and the admin pages.
 
 ## Features
 

@@ -189,7 +189,6 @@ module.exports = {
     const pageUrl = linker('/admin/billing', query);
     return adminRender(res, 'admin/billing', {
       ...data, query, payments, pager, pageUrl, collectedCents,
-      csvUrl: linker('/admin/billing/payments.csv', { q: query.q, status: query.status, from: query.from, to: query.to })(),
       returnTo: pageUrl({ page: pager.page > 1 ? pager.page : undefined }),
     });
   },
@@ -280,35 +279,5 @@ module.exports = {
       rateCents: billingModel.RATE_CENTS_PER_CHAR,
       printedAt: new Date().toISOString(),
     });
-  },
-
-  /** GET /admin/billing/payments.csv - same filters as the Payments tab, every matching row. */
-  async paymentsCsv(req, res) {
-    const filters = {
-      q: text(req.query.q).trim().slice(0, 50),
-      status: pick(req.query.status, ['all', 'valid', 'voided'], 'all'),
-      from: text(req.query.from),
-      to: text(req.query.to),
-      all: true,
-    };
-    const { payments } = await adminModel.listPayments(filters);
-    // A cell that starts with = + - @ would run as a formula when opened in a spreadsheet: neutralise it.
-    const cell = (value) => {
-      let out = String(value === undefined || value === null ? '' : value);
-      if (/^[=+\-@\t\r]/.test(out)) out = `'${out}`;
-      return /[",\r\n]/.test(out) ? `"${out.replace(/"/g, '""')}"` : out;
-    };
-    const header = ['Receipt', 'Received (UTC)', 'User', 'Amount', 'Note', 'Recorded by', 'Status', 'Voided (UTC)', 'Void reason'];
-    const lines = payments.map((p) => [
-      p.receiptNo, p.paidAt, p.username, (p.amountCents / 100).toFixed(2), p.note, p.recorder,
-      p.voided ? 'VOID' : 'valid', p.voidedAt || '', p.voidReason,
-    ].map(cell).join(','));
-    const stamp = billingModel.localDateString(new Date());
-    res.set({
-      'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="bai-ber-payments-${stamp}.csv"`,
-      'Cache-Control': 'no-store',
-    });
-    res.send(`﻿${[header.map(cell).join(','), ...lines].join('\r\n')}\r\n`);
   },
 };

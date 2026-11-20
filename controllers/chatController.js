@@ -1,17 +1,12 @@
 const userModel = require('../models/userModel');
 const messageModel = require('../models/messageModel');
 const billingModel = require('../models/billingModel');
-const { createLimiter } = require('./authController');
 
 const PAGE_SIZE = 50;
 const room = (userId) => `user:${userId}`; // every user has a private Socket.IO room
 const fail = (error) => ({ ok: false, error });
 const notFound = (res, error) => res.status(404).json({ ok: false, error });
 
-// Friend requests per user: generous for people, a wall for scripts spamming everyone.
-const requestLimiter = createLimiter({ windowMs: 10 * 60 * 1000, max: 30 });
-// 40 socket events per 10 seconds per user is plenty for humans and stops floods.
-const eventLimiter = createLimiter({ windowMs: 10 * 1000, max: 40 });
 
 // userId -> Set of socket ids (a person may have several tabs open)
 const online = new Map();
@@ -112,16 +107,13 @@ function isAllowedOrigin(req) {
 }
 
 /**
- * Registers one socket event with: rate limiting, a FRESH database check of the user
+ * Registers one socket event with: a FRESH database check of the user
  * (so deactivation takes effect at once), an argument check, and error handling.
  */
 function on(socket, name, handle) {
   socket.on(name, async (payload, callback) => {
     const reply = typeof callback === 'function' ? callback : () => {};
     try {
-      if (!eventLimiter.consume(String(socket.data.userId)).allowed) {
-        return reply(fail('You are doing that too quickly. Please slow down.'));
-      }
       const me = await userModel.findById(socket.data.userId);
       if (!userModel.canChat(me)) {
         socket.disconnect(true);
@@ -339,10 +331,6 @@ module.exports = {
 
     const target = await userModel.findById(targetId);
     if (!userModel.canChat(target)) return notFound(res, 'That person could not be found.');
-
-    if (!requestLimiter.consume(String(me.user_id)).allowed) {
-      return res.status(429).json({ ok: false, error: 'You are sending friend requests too quickly. Please try again later.' });
-    }
 
     const result = await userModel.sendRequest(me.user_id, target.user_id);
     if (!result.ok) {

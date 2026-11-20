@@ -279,14 +279,9 @@ app.post('/api/profile/password', requireAuth, authController.changePassword);
 app.get('/chat', requireUser, chatController.showChat);
 app.get('/api/me', requireUser, chatController.me);
 app.get('/api/conversations', requireUser, chatController.conversations);
-const messageWrites = authController.createLimiter({windowMs: 10000, max: 40});
-function limitMessageWrites(req, res, next) {
-  if (messageWrites.consume(String(req.user.id)).allowed) return next();
-  return res.status(429).json({ok: false, error: 'Too many message changes. Please slow down.'});
-}
-app.post('/api/messages', requireUser, limitMessageWrites, chatController.createMessage);
-app.put('/api/messages/:id', requireUser, limitMessageWrites, chatController.editMessage);
-app.delete('/api/messages/:id', requireUser, limitMessageWrites, chatController.deleteMessage);
+app.post('/api/messages', requireUser, chatController.createMessage);
+app.put('/api/messages/:id', requireUser, chatController.editMessage);
+app.delete('/api/messages/:id', requireUser, chatController.deleteMessage);
 app.get('/api/messages/:peerId', requireUser, chatController.history);
 app.get('/api/billing', requireUser, chatController.billing);
 
@@ -304,7 +299,6 @@ app.get('/admin/users', requireAdmin, adminController.users);
 app.get('/admin/users/:id', requireAdmin, adminController.userDetail);
 app.post('/admin/users/:id/status', requireAdmin, adminController.setUserStatus);
 app.get('/admin/billing', requireAdmin, adminController.billing);
-app.get('/admin/billing/payments.csv', requireAdmin, adminController.paymentsCsv);
 app.post('/admin/payments', requireAdmin, adminController.recordPayment);
 app.post('/admin/payments/:id/void', requireAdmin, adminController.voidPayment);
 app.get('/admin/payments/:id/receipt', requireAdmin, adminController.receipt);

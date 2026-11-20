@@ -110,7 +110,7 @@ module.exports = {
    * Payments, newest first. status: all | valid | voided. from / to are the admin's calendar dates (YYYY-MM-DD, both inclusive).
    * Also returns the total of the valid payments that match, so the page can show "collected".
    */
-  async listPayments({ userId = null, q = '', status = 'all', from = '', to = '', page = 1, pageSize = 20, all = false } = {}) {
+  async listPayments({ userId = null, q = '', status = 'all', from = '', to = '', page = 1, pageSize = 20 } = {}) {
     const where = [];
     const params = [];
     if (userId) { where.push('p.user_id = ?'); params.push(userId); }
@@ -126,7 +126,7 @@ module.exports = {
     const [[sums]] = await pool.execute(
       `SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN p.voided_at IS NULL THEN p.amount_cents END), 0) AS collected
        FROM payments p JOIN users u ON u.user_id = p.user_id${clause}`, params);
-    const pager = paging(all ? 1 : page, all ? 10000 : pageSize, num(sums.total));
+    const pager = paging(page, pageSize, num(sums.total));
     const [rows] = await pool.execute(
       `${billing.PAYMENT_SELECT}${clause} ORDER BY p.paid_at DESC, p.payment_id DESC LIMIT ${pager.pageSize} OFFSET ${pager.offset}`, params);
     return { payments: rows.map(billing.toPayment), pager, collectedCents: num(sums.collected) };
