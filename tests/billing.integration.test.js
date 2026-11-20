@@ -61,7 +61,7 @@ test('billing and the admin area (MySQL)', { skip }, async (t) => {
   });
 
   let helloId;
-  await t.test('every character sent costs ₱1, charged together with the message', async () => {
+  await t.test('every character sent costs $1, charged together with the message', async () => {
     const sent = await aliceC.api('POST', '/api/messages', { recipientId: bob.id, content: 'hello' });
     assert.equal(sent.status, 201);
     helloId = sent.json.message.id;
@@ -139,7 +139,7 @@ test('billing and the admin area (MySQL)', { skip }, async (t) => {
     const receipt = await adminC.get(ok.location);
     assert.equal(receipt.status, 200);
     assert.match(receipt.body, /OR-000001/);
-    assert.match(receipt.body, /₱10/);
+    assert.match(receipt.body, /\$10/);
     assert.match(receipt.body, /alice_one/);
 
     const bad = [
@@ -201,7 +201,7 @@ test('billing and the admin area (MySQL)', { skip }, async (t) => {
     assert.match(dash.body, /Outstanding/);
     assert.match(dash.body, /Characters billed per day/);
     assert.match(dash.body, /alice_one/, 'the biggest balance is listed');
-    assert.match(dash.body, /₱17/);
+    assert.match(dash.body, /\$17/);
     assert.doesNotMatch(dash.body, /<script>/i, 'no inline script (the CSP forbids it)');
 
     const list = await adminC.get('/admin/users');

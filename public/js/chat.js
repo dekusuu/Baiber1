@@ -1330,7 +1330,7 @@
      ------------------------------------------------------------------ */
   function money(cents) {
     const abs = Math.abs(cents);
-    const text = `₱${Math.floor(abs / 100).toLocaleString('en-US')}${abs % 100 ? `.${String(abs % 100).padStart(2, '0')}` : ''}`;
+    const text = `$${Math.floor(abs / 100).toLocaleString('en-US')}${abs % 100 ? `.${String(abs % 100).padStart(2, '0')}` : ''}`;
     return cents < 0 ? `-${text}` : text;
   }
 
